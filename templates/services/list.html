@@ -1,0 +1,30 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+
+<h2 class="text-2xl font-bold mb-4">Salon Services</h2>
+
+<div class="bg-white p-4 rounded shadow">
+
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="border-b">
+        <th>Name</th>
+        <th>Category</th>
+        <th>Price</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for service in services %}
+      <tr class="border-b">
+        <td>{{ service.name }}</td>
+        <td>{{ service.category }}</td>
+        <td>KSh {{ service.price }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

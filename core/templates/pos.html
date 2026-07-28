@@ -1,0 +1,99 @@
+<!-- templates/pos.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Happy Hair</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100">
+
+<div class="flex h-screen">
+
+    <!-- LEFT: SERVICES & PRODUCTS -->
+    <div class="w-2/3 p-4 overflow-y-scroll">
+        <h2 class="text-xl font-bold mb-4">Services & Products</h2>
+
+        <div class="grid grid-cols-3 gap-4">
+
+            {% for service in services %}
+            <button 
+                class="bg-white p-4 rounded shadow hover:bg-blue-100"
+                onclick="addItem('service', {{ service.id }})">
+                <h3 class="font-semibold">{{ service.name }}</h3>
+                <p>KES {{ service.price }}</p>
+            </button>
+            {% endfor %}
+
+            {% for product in products %}
+            <button 
+                class="bg-white p-4 rounded shadow hover:bg-green-100"
+                onclick="addItem('product', {{ product.id }})">
+                <h3 class="font-semibold">{{ product.name }}</h3>
+                <p>KES {{ product.selling_price }}</p>
+            </button>
+            {% endfor %}
+
+        </div>
+    </div>
+
+
+    <!-- RIGHT: CART -->
+    <div class="w-1/3 bg-white p-4 shadow-lg">
+
+        <h2 class="text-xl font-bold mb-4">Cart</h2>
+
+        <div id="cart-items"></div>
+
+        <hr class="my-4">
+
+        <h3 class="text-lg font-bold">
+            Total: KES <span id="total">0</span>
+        </h3>
+
+        <button 
+            class="mt-4 w-full bg-blue-500 text-white p-3 rounded"
+            onclick="checkout()">
+            Pay
+        </button>
+
+    </div>
+
+</div>
+
+
+<script>
+let cart = [];
+
+function addItem(type, id) {
+    cart.push({type: type, id: id, qty: 1});
+    renderCart();
+}
+
+function renderCart() {
+    let cartDiv = document.getElementById("cart-items");
+    let total = 0;
+
+    cartDiv.innerHTML = "";
+
+    cart.forEach((item, index) => {
+        let div = document.createElement("div");
+        div.innerHTML = `
+            <p>${item.type} #${item.id}</p>
+        `;
+        cartDiv.appendChild(div);
+
+        total += 100; // placeholder
+    });
+
+    document.getElementById("total").innerText = total;
+}
+
+function checkout() {
+    alert("Proceed to payment");
+}
+</script>
+
+</body>
+</html>

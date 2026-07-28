@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}POS{% endblock %} — Happy Hair</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Premium Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        /* Smooth transitions for sidebar items */
+        .sidebar-link {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        /* Custom scrollbar styling */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-[#F8F9FD] text-slate-800 h-screen overflow-hidden relative">
+
+    <!-- Subtle Blurred Background Highlights for Organic Depth -->
+    <div class="absolute top-[-10%] right-[-10%] w-[40rem] h-[40rem] rounded-full bg-indigo-500/5 blur-[100px] pointer-events-none z-0"></div>
+    <div class="absolute bottom-[-10%] left-[20%] w-[45rem] h-[45rem] rounded-full bg-rose-500/5 blur-[120px] pointer-events-none z-0"></div>
+
+    <div class="flex h-screen overflow-hidden relative z-10">
+
+        <!-- SIDEBAR: Premium Dark Mode Obsidian Style -->
+        <aside class="w-64 bg-[#0F111A] text-slate-300 flex-shrink-0 flex flex-col border-r border-[#1C1E2D] m-4 mr-0 rounded-[2rem] shadow-xl shadow-slate-900/5">
+            
+            <!-- Brand / Header -->
+            <div class="p-6 border-b border-[#1C1E2D] flex items-center justify-between">
+                <div>
+                    <h1 class="text-lg font-extrabold tracking-tight text-white flex items-center gap-2">
+                        <span class="w-3.5 h-3.5 rounded-full bg-indigo-500 animate-pulse"></span>
+                        Happy Hair
+                    </h1>
+                    <p class="text-[10px] text-indigo-400/80 uppercase font-bold tracking-wider mt-0.5">Professional POS</p>
+                </div>
+                <!-- Active/Online Status Indicator -->
+                <span class="flex h-2 w-2 relative">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto custom-scrollbar">
+                
+                <!-- Dashboard -->
+                <a href="{% url 'dashboard' %}" 
+                   class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold group 
+                   {% if request.resolver_match.url_name == 'dashboard' %}
+                       bg-indigo-600 text-white shadow-lg shadow-indigo-600/15
+                   {% else %}
+                       text-slate-400 hover:text-slate-200 hover:bg-white/5
+                   {% endif %}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z"/>
+                    </svg>
+                    Dashboard
+                </a>
+
+                <!-- POS -->
+                <a href="{% url 'pos_dashboard' %}" 
+                   class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold group
+                   {% if request.resolver_match.url_name == 'pos_dashboard' %}
+                       bg-indigo-600 text-white shadow-lg shadow-indigo-600/15
+                   {% else %}
+                       text-slate-400 hover:text-slate-200 hover:bg-white/5
+                   {% endif %}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    POS
+                </a>
+
+                <!-- Sales -->
+                <a href="{% url 'sales_list' %}" 
+                   class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold group
+                   {% if request.resolver_match.url_name == 'sales_list' %}
+                       bg-indigo-600 text-white shadow-lg shadow-indigo-600/15
+                   {% else %}
+                       text-slate-400 hover:text-slate-200 hover:bg-white/5
+                   {% endif %}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Sales Records
+                </a>
+
+                <!-- Reports -->
+                <a href="{% url 'reports' %}" 
+                   class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold group
+                   {% if request.resolver_match.url_name == 'reports' %}
+                       bg-indigo-600 text-white shadow-lg shadow-indigo-600/15
+                   {% else %}
+                       text-slate-400 hover:text-slate-200 hover:bg-white/5
+                   {% endif %}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    Reports
+                </a>
+
+                <!-- SECTION HEADER: Clients -->
+                <div class="pt-6 pb-2 px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Client Management</div>
+                
+                <!-- Directory -->
+                <a href="{% url 'clients_list' %}" 
+                   class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold group
+                   {% if request.resolver_match.url_name == 'clients_list' %}
+                       bg-indigo-600 text-white shadow-lg shadow-indigo-600/15
+                   {% else %}
+                       text-slate-400 hover:text-slate-200 hover:bg-white/5
+                   {% endif %}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    Directory
+                </a>
+
+                <!-- Broadcast -->
+                <a href="{% url 'broadcast' %}" 
+                   class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold group
+                   {% if request.resolver_match.url_name == 'broadcast' %}
+                       bg-indigo-600 text-white shadow-lg shadow-indigo-600/15
+                   {% else %}
+                       text-slate-400 hover:text-slate-200 hover:bg-white/5
+                   {% endif %}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
+                    </svg>
+                    Broadcast
+                </a>
+
+                <!-- SECTION HEADER: Salon -->
+                <div class="pt-6 pb-2 px-4 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Salon Core</div>
+
+                <!-- Inventory -->
+                <a href="{% url 'inventory_list' %}" 
+                   class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold group
+                   {% if request.resolver_match.url_name == 'inventory_list' %}
+                       bg-indigo-600 text-white shadow-lg shadow-indigo-600/15
+                   {% else %}
+                       text-slate-400 hover:text-slate-200 hover:bg-white/5
+                   {% endif %}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                    </svg>
+                    Inventory
+                </a>
+
+                <!-- Services -->
+                <a href="{% url 'services_list' %}" 
+                   class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold group
+                   {% if request.resolver_match.url_name == 'services_list' %}
+                       bg-indigo-600 text-white shadow-lg shadow-indigo-600/15
+                   {% else %}
+                       text-slate-400 hover:text-slate-200 hover:bg-white/5
+                   {% endif %}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.121 14.121L19 19m-7-7l7-7m-7 7a5 5 0 11-10 0 5 5 0 0110 0z"/>
+                    </svg>
+                    Services
+                </a>
+
+                <!-- System Admin Link -->
+                <a href="/admin/" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold text-slate-400 hover:text-slate-200 hover:bg-white/5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                    </svg>
+                    System Admin
+                </a>
+            </nav>
+
+            <!-- User Profile Area -->
+            <div class="p-6 bg-black/20 border-t border-[#1C1E2D] rounded-b-[2rem]">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-rose-400 flex items-center justify-center text-white font-extrabold text-sm shadow-md shadow-indigo-500/10">
+                        {{ request.user.username|slice:":1"|upper }}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-bold text-white truncate">{{ request.user.username }}</p>
+                        <p class="text-[10px] text-slate-400 font-medium">
+                            {% if request.user.is_superuser %}Admin Account{% else %}Staff Member{% endif %}
+                        </p>
+                    </div>
+                    <a href="{% url 'custom_logout' %}" class="p-1.5 hover:bg-red-500/10 text-slate-400 hover:text-red-400 rounded-lg transition-colors" title="Logout">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT VIEW -->
+        <div class="flex-1 flex flex-col overflow-hidden m-4 ml-3 rounded-[2rem] bg-white/70 backdrop-blur-md border border-white/60 shadow-2xl shadow-slate-900/5">
+            
+            <!-- Sticky Header -->
+            <header class="bg-white/80 backdrop-blur-md border-b border-slate-100 px-8 py-4 flex items-center justify-between sticky top-0 z-10 rounded-t-[2rem]">
+                <div class="flex items-center gap-3">
+                    <h1 class="text-lg font-extrabold tracking-tight text-slate-900 uppercase">{% block page_title %}{% endblock %}</h1>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <!-- Notifications/Messages Area -->
+                    {% if messages %}
+                        <div class="flex items-center gap-2">
+                            {% for message in messages %}
+                            <span class="bg-emerald-50 text-emerald-700 px-3.5 py-1.5 rounded-full text-xs font-bold shadow-sm animate-fade-in">
+                                {{ message }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <!-- Clock Widget -->
+                    <div class="flex items-center gap-2 bg-slate-50/50 backdrop-blur-sm border border-slate-200/50 py-1.5 px-4 rounded-full shadow-sm">
+                        <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
+                        <span id="clock" class="text-xs font-black text-slate-500 tracking-wider uppercase tabular-nums">00:00 AM</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dynamic Workspace Block -->
+            <main class="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+<script>
+    function updateClock() {
+        const options = { hour: '2-digit', minute: '2-digit', hour12: true };
+        document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-US', options);
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+</script>
+</body>
+</html>

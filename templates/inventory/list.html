@@ -1,0 +1,80 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="space-y-10 pb-10">
+    <div class="flex justify-between items-center">
+        <h2 class="text-2xl font-bold text-gray-800 tracking-tight">Inventory Stock Control</h2>
+        <div class="text-sm text-gray-500">Current as of {{ now|date:"d M Y" }}</div>
+    </div>
+
+    <!-- 💇 HUMAN HAIR STOCK -->
+    <section>
+        <div class="flex items-center gap-2 mb-4">
+            <span class="text-2xl">💇</span>
+            <h3 class="text-lg font-bold text-purple-800 uppercase tracking-wide">Human Hair Bundles</h3>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+            {% for hair in hair_stock %}
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 {% if hair.is_out_of_stock %}bg-red-50 border-red-200{% endif %}">
+                <div class="font-bold text-gray-900">{{ hair.name }}</div>
+                <div class="text-xs text-gray-500 mb-4">{{ hair.texture.name }} | {{ hair.length_inch }} inch</div>
+                <div class="flex justify-between items-end mt-auto">
+                    <div>
+                        <div class="text-[10px] text-gray-400 uppercase font-bold">Selling Price</div>
+                        <div class="font-black text-gray-800">KSh {{ hair.selling_price|floatformat:0 }}</div>
+                    </div>
+                    <div class="text-right">
+                        <span class="px-3 py-1 rounded-full text-xs font-bold {% if hair.is_out_of_stock %}bg-red-500 text-white{% elif hair.is_low_stock %}bg-orange-500 text-white{% else %}bg-purple-100 text-purple-700{% endif %}">
+                            {{ hair.bundles_in_stock }} bundles
+                        </span>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-gray-400 italic">No hair stock recorded.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- 🧴 SALON PRODUCTS -->
+    <section>
+        <div class="flex items-center gap-2 mb-4">
+            <span class="text-2xl">🧴</span>
+            <h3 class="text-lg font-bold text-blue-800 uppercase tracking-wide">Salon & Retail Products</h3>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+            {% for product in products %}
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                <div class="font-bold text-gray-900">{{ product.name }}</div>
+                <div class="text-[10px] text-gray-400 uppercase font-bold mb-4">{{ product.get_product_type_display }}</div>
+                <div class="flex justify-between items-center">
+                    <span class="font-bold text-gray-800">KSh {{ product.selling_price|floatformat:0 }}</span>
+                    <span class="text-sm {% if product.stock_quantity < 5 %}text-red-600 font-black animate-pulse{% else %}text-gray-600{% endif %}">
+                        Stock: {{ product.stock_quantity|floatformat:0 }}
+                    </span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- ☕ BEVERAGES -->
+    <section>
+        <div class="flex items-center gap-2 mb-4">
+            <span class="text-2xl">☕</span>
+            <h3 class="text-lg font-bold text-green-800 uppercase tracking-wide">Beverage & Drink Stock</h3>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+            {% for b in beverages %}
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                <div class="font-bold text-gray-900">{{ b.name }}</div>
+                <div class="text-xs text-gray-500 mb-4">{{ b.volume_ml }}ml</div>
+                <div class="flex justify-between items-center">
+                    <span class="font-bold text-gray-800">KSh {{ b.selling_price }}</span>
+                    <span class="font-bold text-green-600 bg-green-50 px-2 py-1 rounded text-xs">{{ b.stock_units }} units</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,322 @@
+{% extends 'layout.html' %}
+{% block title %}POS{% endblock %}
+{% block page_title %}Point of Sale{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
+
+    <!-- LEFT: ITEMS -->
+    <div class="lg:col-span-2 space-y-6">
+
+        <!-- Search Bar -->
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-[#2D0900]/5">
+            <input type="text" id="item-search" placeholder="🔍 Search services, products, beverages, human hair..."
+                   oninput="filterItems(this.value)"
+                   class="w-full border border-[#2D0900]/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#7B523F] text-[#2D0900] placeholder-[#7B523F]/50">
+        </div>
+
+        <!-- Services -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-white/60" id="services-section">
+            <h3 class="font-bold mb-4 flex items-center gap-2 text-[#2D0900] uppercase tracking-tight text-base">✂️ Services</h3>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3" id="services-grid">
+                {% for service in services %}
+                <button data-name="{{ service.name|lower }}"
+                        onclick="addToCart('{{ service.id }}', '{{ service.name|escapejs }}', {{ service.price }}, 'service')"
+                        class="item-btn p-4 border border-[#2D0900]/5 rounded-xl hover:border-[#C4734D] hover:bg-[#F3DEC9]/20 text-left transition-all">
+                    <div class="font-bold text-sm text-[#2D0900]">{{ service.name }}</div>
+                    <div class="text-xs text-[#7B523F] font-extrabold mt-1">KSh {{ service.price|floatformat:0 }}</div>
+                    {% if service.category %}<div class="text-[10px] text-[#7B523F]/70 font-bold uppercase tracking-wider mt-1">{{ service.category.name }}</div>{% endif %}
+                </button>
+                {% empty %}
+                <p class="text-sm text-[#7B523F] col-span-3 italic">No services found.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Human Hair -->
+        {% if human_hair %}
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-white/60" id="hair-section">
+            <h3 class="font-bold mb-4 flex items-center gap-2 text-[#2D0900] uppercase tracking-tight text-base">💇 Human Hair</h3>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {% for hair in human_hair %}
+                <button data-name="{{ hair.name|lower }}"
+                        onclick="addToCart('{{ hair.id }}', '{{ hair.name|escapejs }}', {{ hair.selling_price }}, 'human_hair')"
+                        class="item-btn p-4 border border-[#2D0900]/5 rounded-xl hover:border-[#C4734D] hover:bg-[#F3DEC9]/20 text-left transition-all
+                               {% if hair.bundles_in_stock == 0 %}opacity-50 cursor-not-allowed{% endif %}"
+                        {% if hair.bundles_in_stock == 0 %}disabled{% endif %}>
+                    <div class="font-bold text-sm text-[#2D0900]">{{ hair.name }}</div>
+                    <div class="text-[10px] text-[#7B523F]/80 uppercase font-black tracking-tighter mt-1">
+                        {{ hair.get_origin_display }} • {{ hair.texture.name }}
+                    </div>
+                    <div class="flex justify-between items-center mt-2.5">
+                        <span class="text-xs text-[#C4734D] font-extrabold">KSh {{ hair.selling_price|floatformat:0 }}</span>
+                        <span class="text-[10px] bg-[#7B523F]/10 text-[#7B523F] px-2 py-0.5 rounded-lg font-bold">
+                            {{ hair.bundles_in_stock }} left
+                        </span>
+                    </div>
+                </button>
+                {% empty %}
+                <p class="text-sm text-[#7B523F] italic col-span-3">No Human Hair in stock.</p>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Beverages -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-white/60" id="beverages-section">
+            <h3 class="font-bold mb-4 flex items-center gap-2 text-[#2D0900] uppercase tracking-tight text-base">🥤 Beverages</h3>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3" id="beverages-grid">
+                {% for bev in beverages %}
+                <button data-name="{{ bev.name|lower }}"
+                        onclick="addToCart('{{ bev.id }}', '{{ bev.name|escapejs }} ({{ bev.size }})', {{ bev.selling_price }}, 'beverage')"
+                        class="item-btn p-4 border border-[#2D0900]/5 rounded-xl hover:border-[#C4734D] hover:bg-[#F3DEC9]/20 text-left transition-all
+                               {% if bev.stock_units == 0 %}opacity-50 cursor-not-allowed{% endif %}"
+                        {% if bev.stock_units == 0 %}disabled{% endif %}>
+                    <div class="font-bold text-sm text-[#2D0900]">{{ bev.name }}</div>
+                    <div class="text-xs text-[#7B523F] font-extrabold mt-1">{{ bev.size }} — KSh {{ bev.selling_price|floatformat:0 }}</div>
+                    <div class="text-[10px] mt-1.5 font-bold uppercase tracking-wider {% if bev.stock_units == 0 %}text-red-600{% elif bev.is_low_stock %}text-amber-600{% else %}text-[#7B523F]/70{% endif %}">
+                        Stock: {{ bev.stock_units }}
+                    </div>
+                </button>
+                {% empty %}
+                <p class="text-sm text-[#7B523F] col-span-3 italic">No beverages found. Add them via Admin → Beverages.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Products -->
+        {% if products %}
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-white/60" id="products-section">
+            <h3 class="font-bold mb-4 flex items-center gap-2 text-[#2D0900] uppercase tracking-tight text-base">📦 Products</h3>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3" id="products-grid">
+                {% for product in products %}
+                <div class="space-y-1">
+                    <button data-name="{{ product.name|lower }}"
+                            onclick="addToCart('{{ product.id }}', '{{ product.name|escapejs }}', {{ product.selling_price }}, 'product_sale')"
+                            class="item-btn w-full p-4 border border-[#2D0900]/5 rounded-xl hover:border-[#C4734D] hover:bg-[#F3DEC9]/20 text-left transition-all">
+                        <div class="font-bold text-sm text-[#2D0900]">{{ product.name }}</div>
+                        <div class="text-xs text-[#7B523F] font-extrabold mt-1">KSh {{ product.selling_price|floatformat:0 }}</div>
+                    </button>
+                    <button onclick="addToCart('{{ product.id }}', '{{ product.name|escapejs }}', 0, 'product_use')"
+                        class="w-full p-2 bg-[#E1C5A8]/30 hover:bg-[#E1C5A8]/60 text-[#2D0900] border border-[#2D0900]/5 rounded-xl text-[10px] font-black uppercase tracking-wider transition">
+                        Use in Service
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <!-- RIGHT: CART -->
+    <div class="bg-white p-6 rounded-[2rem] shadow-xl shadow-[#2D0900]/5 border border-white/60 h-fit sticky top-6">
+        <h3 class="font-extrabold mb-6 text-lg text-[#2D0900] uppercase tracking-tight flex items-center gap-2">🛒 Current Sale</h3>
+
+        <!-- Client Selection -->
+        <label class="text-[10px] font-black text-[#7B523F] uppercase tracking-widest">Client</label>
+        <select id="client" class="w-full border border-[#2D0900]/10 p-3 mt-1 mb-4 rounded-xl bg-slate-50 text-slate-700 font-bold focus:ring-2 focus:ring-[#7B523F] focus:outline-none text-sm" onchange="updateClientInput()">
+            <option value="">Walk-in Customer</option>
+            {% for client in clients %}
+            <option value="{{ client.id }}">{{ client.name }}{% if client.phone %} — {{ client.phone }}{% endif %}</option>
+            {% endfor %}
+        </select>
+
+        <!-- Worker / Stylist Selection -->
+        <label class="text-[10px] font-black text-[#7B523F] uppercase tracking-widest">Worker / Stylist</label>
+        <select id="default-worker" class="w-full border border-[#2D0900]/10 p-3 mt-1 mb-4 rounded-xl bg-slate-50 text-slate-700 font-bold focus:ring-2 focus:ring-[#7B523F] focus:outline-none text-sm">
+            <option value="">-- Select Worker --</option>
+            {% for member in staff %}
+            <option value="{{ member.id }}">{{ member.full_name }} ({{ member.get_role_display }})</option>
+            {% endfor %}
+        </select>
+
+        <!-- Cart Items -->
+        <label class="text-[10px] font-black text-[#7B523F] uppercase tracking-widest">Items in Cart</label>
+        <ul id="cart-items" class="space-y-2 text-sm mb-4 mt-2 py-4 border-t border-b border-[#EAD0B3]/30 max-h-[300px] overflow-y-auto custom-scrollbar min-h-[60px]">
+            <li class="text-[#7B523F] italic py-4 text-center text-xs">Cart is empty</li>
+        </ul>
+
+        <!-- Discount Input -->
+        <div class="flex items-center gap-3 mb-4">
+            <label class="text-[10px] font-black text-[#7B523F] uppercase tracking-widest whitespace-nowrap">Discount (KSh)</label>
+            <input type="number" id="discount" value="0" min="0" step="50"
+                   oninput="calculateTotal()"
+                   class="border border-[#2D0900]/10 rounded-xl p-2.5 text-sm w-full text-right font-bold text-[#2D0900]">
+        </div>
+
+        <!-- Total display -->
+        <div class="flex justify-between font-black text-2xl mb-4 pt-3 border-t">
+            <span class="text-[#2D0900] uppercase tracking-tight">Total</span>
+            <span class="text-[#2D0900]">KSh <span id="total">0</span></span>
+        </div>
+
+        <!-- Payment Method Toggle -->
+        <label class="text-[10px] font-black text-[#7B523F] uppercase tracking-widest block mb-2">Payment Method</label>
+        <div class="grid grid-cols-3 gap-2 mt-1 mb-4">
+            <button type="button" onclick="setPayment('cash')"
+                    id="pay-cash"
+                    class="pay-btn py-2.5 rounded-xl text-xs font-bold bg-[#2D0900] text-white border border-transparent transition-all">
+                Cash
+            </button>
+            <button type="button" onclick="setPayment('mpesa')"
+                    id="pay-mpesa"
+                    class="pay-btn py-2.5 rounded-xl text-xs font-bold bg-slate-50 text-[#7B523F] border border-[#2D0900]/5 transition-all">
+                M-Pesa
+            </button>
+            <button type="button" onclick="setPayment('card')"
+                    id="pay-card"
+                    class="pay-btn py-2.5 rounded-xl text-xs font-bold bg-slate-50 text-[#7B523F] border border-[#2D0900]/5 transition-all">
+                Card
+            </button>
+        </div>
+
+        <!-- Notes Input -->
+        <input type="text" id="notes" placeholder="Notes (optional)"
+               class="w-full border border-[#2D0900]/10 rounded-xl px-3 py-3 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-[#7B523F] text-[#2D0900] placeholder-[#7B523F]/50">
+
+        <!-- Checkout Form Submission -->
+        <form method="POST" action="{% url 'create_sale' %}" onsubmit="return prepareSubmit()">
+            {% csrf_token %}
+            <input type="hidden" name="client_id" id="client_input">
+            <input type="hidden" name="cart_data" id="cart_data">
+            <input type="hidden" name="payment_method" id="payment_input" value="cash">
+            <input type="hidden" name="discount" id="discount_input" value="0">
+            <input type="hidden" name="notes" id="notes_input">
+
+            <button type="submit"
+                    class="w-full bg-[#2D0900] text-white py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-[#7B523F] transition shadow-lg shadow-[#2D0900]/10 transform active:scale-95 text-sm">
+                COMPLETE SALE
+            </button>
+        </form>
+
+        <!-- Clear Cart Action -->
+        <button onclick="clearCart()" class="w-full mt-2 text-xs text-[#7B523F] hover:text-red-600 font-bold uppercase tracking-wider transition py-1">
+            Clear cart
+        </button>
+    </div>
+
+</div>
+
+<script>
+let cart = [];
+let paymentMethod = 'cash';
+
+// ── Payment method selector reskinned ──
+function setPayment(method) {
+    paymentMethod = method;
+    document.querySelectorAll('.pay-btn').forEach(btn => {
+        btn.className = 'pay-btn py-2.5 rounded-xl text-xs font-bold bg-slate-50 text-[#7B523F] border border-[#2D0900]/5 transition-all';
+    });
+    const colors = { 
+        cash: 'bg-[#2D0900] text-white border-transparent', 
+        mpesa: 'bg-[#7B523F] text-white border-transparent', 
+        card: 'bg-[#C4734D] text-white border-transparent' 
+    };
+    const active = document.getElementById('pay-' + method);
+    if (active) active.className = 'pay-btn py-2.5 rounded-xl text-xs font-bold border ' + colors[method] + ' transition-all';
+}
+
+// ── Add to cart ──
+function addToCart(id, name, price, type) {
+    const workerId = document.getElementById('default-worker').value;
+    const workerName = document.getElementById('default-worker').options[document.getElementById('default-worker').selectedIndex].text;
+    const existing = cart.find(i => i.id === id && i.type === type);
+    if (existing) {
+        existing.quantity += 1;
+    } else {
+        cart.push({ id, name, price: parseFloat(price), type, quantity: 1, worker_id: workerId, worker_name: workerId ? workerName : '' });
+    }
+    calculateTotal();
+    renderCart();
+}
+
+function removeItem(index) {
+    cart.splice(index, 1);
+    calculateTotal();
+    renderCart();
+}
+
+function clearCart() {
+    cart = [];
+    calculateTotal();
+    renderCart();
+}
+
+function calculateTotal() {
+    const discount = parseFloat(document.getElementById('discount').value) || 0;
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const total = Math.max(0, subtotal - discount);
+    document.getElementById('total').innerText = total.toLocaleString();
+}
+
+function renderCart() {
+    const list = document.getElementById('cart-items');
+    if (cart.length === 0) {
+        list.innerHTML = '<li class="text-[#7B523F] italic py-2 text-center text-xs">Cart is empty</li>';
+        return;
+    }
+    list.innerHTML = '';
+    cart.forEach((item, index) => {
+        const typeBadge = {
+            service: '', 
+            product_sale: '<span class="text-[8px] font-extrabold bg-[#2D0900]/10 text-[#2D0900] px-1.5 py-0.5 rounded ml-1 tracking-wider">SALE</span>',
+            product_use: '<span class="text-[8px] font-extrabold bg-[#E1C5A8]/50 text-[#2D0900] px-1.5 py-0.5 rounded ml-1 tracking-wider">USED</span>',
+            beverage: '<span class="text-[8px] font-extrabold bg-[#7B523F]/10 text-[#7B523F] px-1.5 py-0.5 rounded ml-1 tracking-wider">BEV</span>',
+            human_hair: '<span class="text-[8px] font-extrabold bg-[#C4734D]/10 text-[#C4734D] px-1.5 py-0.5 rounded ml-1 tracking-wider">HAIR</span>',
+        }[item.type] || '';
+
+        const li = document.createElement('li');
+        li.className = 'bg-slate-50/50 p-3 rounded-xl border border-[#2D0900]/5';
+        li.innerHTML = `
+            <div class="flex justify-between items-start">
+                <div class="flex-1 min-w-0">
+                    <div class="text-sm font-bold text-[#2D0900] truncate">${item.name}${typeBadge}</div>
+                    ${item.worker_name && item.worker_id ? `<div class="text-[10px] text-purple-600 font-bold uppercase tracking-wider mt-0.5">👤 ${item.worker_name}</div>` : ''}
+                    <div class="flex items-center gap-2 mt-2">
+                        <button onclick="changeQty(${index}, -1)" class="w-5 h-5 rounded bg-gray-200 hover:bg-gray-300 text-xs font-bold flex items-center justify-center text-[#2D0900]">−</button>
+                        <span class="text-xs font-bold text-[#2D0900]">${item.quantity}</span>
+                        <button onclick="changeQty(${index}, 1)" class="w-5 h-5 rounded bg-gray-200 hover:bg-gray-300 text-xs font-bold flex items-center justify-center text-[#2D0900]">+</button>
+                        <span class="text-[10px] text-[#7B523F] font-bold">@ KSh ${item.price}</span>
+                    </div>
+                </div>
+                <div class="flex flex-col items-end gap-1 ml-2">
+                    <span class="font-extrabold text-sm text-[#2D0900]">KSh ${(item.price * item.quantity).toLocaleString()}</span>
+                    <button onclick="removeItem(${index})" class="text-red-400 hover:text-red-600 text-xs mt-1">✕</button>
+                </div>
+            </div>`;
+        list.appendChild(li);
+    });
+    document.getElementById('cart_data').value = JSON.stringify(cart);
+}
+
+function changeQty(index, delta) {
+    cart[index].quantity = Math.max(1, cart[index].quantity + delta);
+    calculateTotal();
+    renderCart();
+}
+
+function updateClientInput() {
+    document.getElementById('client_input').value = document.getElementById('client').value;
+}
+
+function prepareSubmit() {
+    if (cart.length === 0) { alert('Cart is empty!'); return false; }
+    document.getElementById('payment_input').value = paymentMethod;
+    document.getElementById('discount_input').value = document.getElementById('discount').value || '0';
+    document.getElementById('notes_input').value = document.getElementById('notes').value;
+    document.getElementById('cart_data').value = JSON.stringify(cart);
+    updateClientInput();
+    return true;
+}
+
+function filterItems(q) {
+    q = q.toLowerCase().trim();
+    document.querySelectorAll('.item-btn').forEach(btn => {
+        const name = btn.getAttribute('data-name') || '';
+        btn.closest('div').style.display = (!q || name.includes(q)) ? '' : 'none';
+    });
+}
+</script>
+
+{% endblock %}

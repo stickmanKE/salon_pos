@@ -1,0 +1,75 @@
+{% extends 'layout.html' %}
+{% block title %}Sales{% endblock %}
+{% block page_title %}Sales{% endblock %}
+
+{% block content %}
+
+<!-- Filter bar -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+    <div class="flex gap-2">
+        <a href="?period=today" class="px-4 py-2 rounded-xl text-sm font-medium transition
+            {% if period == 'today' %}bg-black text-white{% else %}bg-white border hover:bg-gray-50{% endif %}">Today</a>
+        <a href="?period=week" class="px-4 py-2 rounded-xl text-sm font-medium transition
+            {% if period == 'week' %}bg-black text-white{% else %}bg-white border hover:bg-gray-50{% endif %}">This Week</a>
+        <a href="?period=month" class="px-4 py-2 rounded-xl text-sm font-medium transition
+            {% if period == 'month' %}bg-black text-white{% else %}bg-white border hover:bg-gray-50{% endif %}">This Month</a>
+        <a href="?period=all" class="px-4 py-2 rounded-xl text-sm font-medium transition
+            {% if period == 'all' or not period %}bg-black text-white{% else %}bg-white border hover:bg-gray-50{% endif %}">All Time</a>
+    </div>
+    <div class="bg-white border rounded-xl px-5 py-2.5 text-sm font-semibold text-green-600 shadow-sm">
+        Total: KSh {{ total_revenue|floatformat:0 }}
+        <span class="text-gray-400 font-normal ml-2">({{ sales|length }} sales)</span>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <table class="w-full text-sm">
+        <thead>
+            <tr class="bg-gray-50 text-gray-500 text-xs uppercase border-b">
+                <th class="p-4 text-left">Sale #</th>
+                <th class="p-4 text-left">Client</th>
+                <th class="p-4 text-left">Items</th>
+                <th class="p-4 text-left">Payment</th>
+                <th class="p-4 text-right">Discount</th>
+                <th class="p-4 text-right">Total</th>
+                <th class="p-4 text-right">Date & Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sale in sales %}
+            <tr class="border-b hover:bg-gray-50 transition">
+                <td class="p-4 text-gray-400 font-mono">#{{ sale.id }}</td>
+                <td class="p-4">
+                    <div class="font-medium text-gray-900">{{ sale.client.name|default:"Walk-in" }}</div>
+                    {% if sale.client.phone %}<div class="text-xs text-gray-400">{{ sale.client.phone }}</div>{% endif %}
+                </td>
+                <td class="p-4 text-gray-600">{{ sale.items.count }} item{{ sale.items.count|pluralize }}</td>
+                <td class="p-4">
+                    <span class="px-2.5 py-1 rounded-full text-xs font-medium
+                        {% if sale.payment_method == 'mpesa' %}bg-blue-100 text-blue-700
+                        {% elif sale.payment_method == 'card' %}bg-purple-100 text-purple-700
+                        {% elif sale.payment_method == 'mixed' %}bg-orange-100 text-orange-700
+                        {% else %}bg-green-100 text-green-700{% endif %}">
+                        {{ sale.get_payment_method_display|default:"Cash" }}
+                    </span>
+                </td>
+                <td class="p-4 text-right text-red-500 text-xs">
+                    {% if sale.discount_amount %}−KSh {{ sale.discount_amount|floatformat:0 }}{% else %}—{% endif %}
+                </td>
+                <td class="p-4 text-right font-bold text-gray-900">KSh {{ sale.total_amount|floatformat:0 }}</td>
+                <td class="p-4 text-right text-gray-400 text-xs">{{ sale.created_at|date:"d M Y, H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="p-10 text-center text-gray-400">
+                    <div class="text-lg mb-1">No sales found</div>
+                    <p class="text-sm">Try a different time period or <a href="{% url 'pos_dashboard' %}" class="text-blue-600 hover:underline">create a sale</a>.</p>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

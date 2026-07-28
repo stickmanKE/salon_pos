@@ -1,0 +1,296 @@
+{% extends 'layout.html' %}
+{% block title %}Broadcast & Export{% endblock %}
+{% block page_title %}Broadcast & Export{% endblock %}
+
+{% block content %}
+
+<!-- Stats row -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+        <p class="text-xs text-gray-400 uppercase font-semibold mb-1">Total Clients</p>
+        <p class="text-2xl font-bold text-gray-900">{{ clients|length }}</p>
+    </div>
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+        <p class="text-xs text-gray-400 uppercase font-semibold mb-1">With WhatsApp</p>
+        <p class="text-2xl font-bold text-green-600">{{ wa_count }}</p>
+    </div>
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+        <p class="text-xs text-gray-400 uppercase font-semibold mb-1">With Email</p>
+        <p class="text-2xl font-bold text-blue-600">{{ email_count }}</p>
+    </div>
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+        <p class="text-xs text-gray-400 uppercase font-semibold mb-1">Export Ready</p>
+        <p class="text-2xl font-bold text-purple-600">{{ clients|length }}</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- ─── LEFT COLUMN ─── -->
+    <div class="space-y-6">
+
+        <!-- Export Contacts -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <h3 class="font-semibold text-gray-800 text-base mb-1">📤 Export Contacts</h3>
+            <p class="text-sm text-gray-400 mb-5">Download your client list for Google Contacts, iPhone, Android, or Excel.</p>
+
+            <div class="space-y-3">
+
+                <!-- vCard -->
+                <a href="{% url 'export_vcf' %}"
+                   class="flex items-center gap-4 p-4 border border-gray-200 rounded-xl hover:border-green-400 hover:bg-green-50 transition group">
+                    <div class="w-10 h-10 bg-green-100 text-green-600 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
+                        📇
+                    </div>
+                    <div>
+                        <div class="font-medium text-gray-900 text-sm">Download as vCard (.vcf)</div>
+                        <div class="text-xs text-gray-400">Works with Google Contacts, iPhone, Samsung & all Android phones</div>
+                    </div>
+                    <span class="ml-auto text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">{{ clients|length }} contacts</span>
+                </a>
+
+                <!-- CSV -->
+                <a href="{% url 'export_csv' %}"
+                   class="flex items-center gap-4 p-4 border border-gray-200 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition group">
+                    <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
+                        📊
+                    </div>
+                    <div>
+                        <div class="font-medium text-gray-900 text-sm">Download as CSV (.csv)</div>
+                        <div class="text-xs text-gray-400">Open in Excel or Google Sheets — all names, phones & emails</div>
+                    </div>
+                    <span class="ml-auto text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">Spreadsheet</span>
+                </a>
+
+            </div>
+
+            <!-- How to import guide -->
+            <details class="mt-4">
+                <summary class="text-xs text-gray-400 cursor-pointer hover:text-gray-600 select-none">How to import into Google / iPhone / Android ▸</summary>
+                <div class="mt-3 space-y-2 text-xs text-gray-500 bg-gray-50 rounded-xl p-4">
+                    <p><strong class="text-gray-700">Google Contacts (Android / Web):</strong><br>
+                    Download the .vcf → Open <a href="https://contacts.google.com" target="_blank" class="text-blue-600 underline">contacts.google.com</a> → Click Import → Select the .vcf file.</p>
+                    <p><strong class="text-gray-700">iPhone (iOS):</strong><br>
+                    AirDrop or email yourself the .vcf file → Tap it on your iPhone → Tap "Add All Contacts".</p>
+                    <p><strong class="text-gray-700">Samsung / Android:</strong><br>
+                    Transfer the .vcf to your phone → Open Contacts app → Menu → Import → Select .vcf file.</p>
+                    <p><strong class="text-gray-700">WhatsApp Bulk:</strong><br>
+                    Import contacts to your phone first (above), then use the WhatsApp section on this page to message each one.</p>
+                </div>
+            </details>
+        </div>
+
+        <!-- Email Newsletter -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <h3 class="font-semibold text-gray-800 text-base mb-1">📧 Email Newsletter</h3>
+            <p class="text-sm text-gray-400 mb-4">
+                Compose a message and open it in your email app with all
+                <strong class="text-blue-600">{{ email_count }} client emails</strong> pre-filled.
+            </p>
+
+            <form method="GET" action="{% url 'broadcast' %}" class="space-y-3" id="email-form">
+                <!-- Preserve WA state -->
+                <input type="hidden" name="wa_message" value="{{ wa_message|default:'' }}">
+
+                <div>
+                    <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1 block">Subject</label>
+                    <input type="text" name="email_subject"
+                           value="{{ email_subject }}"
+                           placeholder="e.g. 🎉 20% OFF this weekend at Happy Hair!"
+                           class="w-full border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+                </div>
+
+                <div>
+                    <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1 block">Message Body</label>
+                    <textarea name="email_body" rows="5"
+                              placeholder="Hi {Name}, &#10;&#10;We have an exciting offer just for you..."
+                              class="w-full border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none">{{ email_body }}</textarea>
+                </div>
+
+                <!-- Quick templates -->
+                <div>
+                    <p class="text-xs text-gray-400 mb-2">Quick templates:</p>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" onclick="fillEmailTemplate('offer')"
+                                class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg transition">🎉 Weekend Offer</button>
+                        <button type="button" onclick="fillEmailTemplate('holiday')"
+                                class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg transition">🎄 Holiday Special</button>
+                        <button type="button" onclick="fillEmailTemplate('new_service')"
+                                class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg transition">✂️ New Service</button>
+                        <button type="button" onclick="fillEmailTemplate('loyalty')"
+                                class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg transition">💛 Thank You</button>
+                    </div>
+                </div>
+
+                <button type="submit"
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-xl transition text-sm">
+                    Generate Email →
+                </button>
+            </form>
+
+            {% if mailto_link %}
+            <div class="mt-4 p-4 bg-blue-50 rounded-xl border border-blue-100">
+                <p class="text-sm font-medium text-blue-800 mb-2">✅ Ready! Click below to open in your email app:</p>
+                <a href="{{ mailto_link }}"
+                   class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition text-sm">
+                    📧 Open Email App ({{ email_count }} recipients)
+                </a>
+                <p class="text-xs text-blue-400 mt-2 text-center">Opens in Gmail, Outlook, Apple Mail — wherever your default email app is set.</p>
+
+                <!-- Copy all emails separately -->
+                <div class="mt-3 pt-3 border-t border-blue-200">
+                    <p class="text-xs text-gray-500 mb-1">Or copy all emails manually:</p>
+                    <div class="flex gap-2">
+                        <input id="all-emails" type="text" value="{{ all_emails }}" readonly
+                               class="flex-1 text-xs border border-gray-200 rounded-lg p-2 bg-white text-gray-600 truncate">
+                        <button onclick="copyEmails()"
+                                class="text-xs bg-gray-800 text-white px-3 py-2 rounded-lg hover:bg-black transition whitespace-nowrap">
+                            Copy
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <!-- ─── RIGHT COLUMN ─── -->
+    <div class="space-y-6">
+
+        <!-- WhatsApp Broadcast -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <h3 class="font-semibold text-gray-800 text-base mb-1">💬 WhatsApp Broadcast</h3>
+            <p class="text-sm text-gray-400 mb-4">
+                Compose a message — we'll generate a personal WhatsApp link for each of your
+                <strong class="text-green-600">{{ wa_count }} clients</strong> with a phone number.
+                Click each link to open WhatsApp and send.
+            </p>
+
+            <form method="GET" action="{% url 'broadcast' %}" class="space-y-3">
+                <!-- Preserve email state -->
+                <input type="hidden" name="email_subject" value="{{ email_subject|default:'' }}">
+                <input type="hidden" name="email_body" value="{{ email_body|default:'' }}">
+
+                <div>
+                    <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1 block">Message</label>
+                    <textarea name="wa_message" rows="4"
+                              placeholder="Hi! 👋 Happy Hair here. We have a special offer this week — 20% off all hair services. Book now! 💇‍♀️"
+                              class="w-full border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 resize-none">{{ wa_message }}</textarea>
+                </div>
+
+                <!-- Quick WA templates -->
+                <div>
+                    <p class="text-xs text-gray-400 mb-2">Quick templates:</p>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" onclick="fillWATemplate('offer')"
+                                class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg transition">🎉 Offer</button>
+                        <button type="button" onclick="fillWATemplate('reminder')"
+                                class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg transition">📅 Visit Reminder</button>
+                        <button type="button" onclick="fillWATemplate('holiday')"
+                                class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg transition">🎄 Holiday</button>
+                        <button type="button" onclick="fillWATemplate('new_service')"
+                                class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg transition">✂️ New Service</button>
+                    </div>
+                </div>
+
+                <div class="flex gap-2">
+                    <button type="submit"
+                            class="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-3 rounded-xl transition text-sm">
+                        Generate WhatsApp Links →
+                    </button>
+                </div>
+            </form>
+
+            {% if wa_links %}
+            <div class="mt-5">
+                <div class="flex items-center justify-between mb-3">
+                    <p class="text-sm font-semibold text-gray-700">{{ wa_links|length }} links ready — click each to send:</p>
+                    <button onclick="openAll()" class="text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 transition">
+                        Open All ({{ wa_links|length }})
+                    </button>
+                </div>
+
+                <div class="space-y-2 max-h-96 overflow-y-auto pr-1">
+                    {% for link in wa_links %}
+                    <a href="{{ link.url }}" target="_blank"
+                       class="flex items-center gap-3 p-3 border border-gray-100 rounded-xl hover:border-green-400 hover:bg-green-50 transition group">
+                        <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-bold text-sm flex-shrink-0">
+                            {{ link.name|slice:":1"|upper }}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="font-medium text-sm text-gray-900">{{ link.name }}</div>
+                            <div class="text-xs text-gray-400">{{ link.phone }}</div>
+                        </div>
+                        <span class="text-xs text-green-600 font-medium group-hover:underline flex-shrink-0">Send ↗</span>
+                    </a>
+                    {% endfor %}
+                </div>
+
+                <p class="text-xs text-gray-400 mt-3 text-center">
+                    💡 Tip: Each link opens WhatsApp with your message pre-typed. Just hit Send.
+                </p>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+<script>
+// ── WhatsApp templates ──
+const waTemplates = {
+    offer:       "Hi! 👋 This is Happy Hair Salon.\n\nWe have a special offer this week — 20% OFF all hair services! 💇‍♀️✨\n\nBook your appointment today. We'd love to see you!\n\n📍 Happy Hair Salon",
+    reminder:    "Hi! 👋 This is Happy Hair Salon.\n\nIt's been a while since your last visit — we miss you! 💛\n\nCome in this week and enjoy a fresh look. Give us a call to book your slot.\n\n📍 Happy Hair Salon",
+    holiday:     "Hi! 🎄 Season's greetings from Happy Hair Salon!\n\nWe're running a holiday special — treat yourself or a loved one to a gorgeous makeover this festive season.\n\nBook now before slots fill up! 💫\n\n📍 Happy Hair Salon",
+    new_service: "Hi! 👋 Exciting news from Happy Hair Salon!\n\nWe've just added new services to our menu — come check them out!\n\nBook your appointment today and be one of the first to try something new. ✂️💅\n\n📍 Happy Hair Salon",
+};
+
+// ── Email templates ──
+const emailTemplates = {
+    offer: {
+        subject: "🎉 Special Offer This Weekend — Happy Hair Salon",
+        body: "Hi there,\n\nWe have an exciting offer just for you!\n\nThis weekend only — enjoy 20% OFF all hair services at Happy Hair Salon.\n\nBook your appointment now — slots are limited!\n\nWarm regards,\nHappy Hair Salon Team"
+    },
+    holiday: {
+        subject: "🎄 Happy Holidays from Happy Hair Salon!",
+        body: "Hi there,\n\nWishing you a wonderful festive season!\n\nTreat yourself to a gorgeous look this holiday — we have special packages available.\n\nBook your appointment today.\n\nWarm regards,\nHappy Hair Salon Team"
+    },
+    new_service: {
+        subject: "✂️ New Services Now Available at Happy Hair!",
+        body: "Hi there,\n\nWe are excited to announce new services now available at Happy Hair Salon!\n\nVisit us to see our updated menu and book your appointment.\n\nWarm regards,\nHappy Hair Salon Team"
+    },
+    loyalty: {
+        subject: "💛 Thank You for Being a Loyal Client — Happy Hair",
+        body: "Hi there,\n\nWe truly appreciate your continued support of Happy Hair Salon.\n\nAs a thank you, we'd love to offer you a complimentary treatment on your next visit — just mention this email.\n\nThank you for trusting us with your look!\n\nWarm regards,\nHappy Hair Salon Team"
+    },
+};
+
+function fillWATemplate(key) {
+    document.querySelector('textarea[name="wa_message"]').value = waTemplates[key] || '';
+}
+
+function fillEmailTemplate(key) {
+    const t = emailTemplates[key];
+    if (!t) return;
+    document.querySelector('input[name="email_subject"]').value = t.subject;
+    document.querySelector('textarea[name="email_body"]').value = t.body;
+}
+
+function copyEmails() {
+    const input = document.getElementById('all-emails');
+    input.select();
+    document.execCommand('copy');
+    alert('All emails copied to clipboard!');
+}
+
+function openAll() {
+    const links = document.querySelectorAll('a[href^="https://wa.me"]');
+    if (links.length > 20) {
+        if (!confirm(`You are about to open ${links.length} WhatsApp tabs. Your browser may block some. Continue?`)) return;
+    }
+    links.forEach((a, i) => setTimeout(() => window.open(a.href, '_blank'), i * 300));
+}
+</script>
+
+{% endblock %}

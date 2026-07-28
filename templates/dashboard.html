@@ -1,0 +1,109 @@
+{% extends 'layout.html' %}
+{% load humanize %}
+{% block page_title %}Dashboard — System Overview{% endblock %}
+{% block content %}
+
+<div class="max-w-[1600px] mx-auto space-y-6">
+    
+    <!-- TOP ROW: KPI GRID (Reduced Gap and Padding) -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4">
+        <!-- Main Stats -->
+        {% include 'components/kpi_card.html' with title="Daily Revenue" val=stats.revenue_today icon="💰" color="indigo" %}
+        {% include 'components/kpi_card.html' with title="Monthly Revenue" val=stats.revenue_month icon="📅" color="green" trend=stats.growth %}
+        {% include 'components/kpi_card.html' with title="Average Sale" val=stats.avg_sale icon="📈" color="orange" %}
+        {% include 'components/kpi_card.html' with title="New Clients" val=stats.new_clients unit="Total" icon="👥" color="blue" %}
+        
+        <!-- Hair Stats -->
+        {% include 'components/kpi_card.html' with title="Hair Revenue" val=hair_stats.revenue icon="💇" color="pink" %}
+        {% include 'components/kpi_card.html' with title="Bundles Sold" val=hair_stats.bundles_sold unit="Qty" icon="🛍️" color="purple" %}
+        {% include 'components/kpi_card.html' with title="Stock Value" val=hair_stats.inventory_value icon="💎" color="cyan" %}
+        {% include 'components/kpi_card.html' with title="Low Stock" val=hair_stats.low_stock_count unit="Alerts" icon="⚠️" color="red" %}
+    </div>
+
+    <!-- MIDDLE ROW: ANALYSIS & QUICK ACTIONS -->
+    <div class="grid grid-cols-12 gap-4 lg:gap-6">
+        
+        <!-- Revenue Breakdown (Donut) -->
+        <div class="col-span-12 lg:col-span-4 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xs font-black uppercase text-slate-800">Revenue Mix</h3>
+                <span class="text-[10px] font-bold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-md">MTD</span>
+            </div>
+            <div class="relative h-48 w-full mx-auto">
+                <canvas id="revenueMixChart"></canvas>
+            </div>
+            <div class="mt-4 grid grid-cols-2 gap-2">
+                <div class="text-[10px] font-bold text-slate-500"><span class="inline-block w-2 h-2 rounded-full bg-[#5C59E8] mr-1"></span> Services</div>
+                <div class="text-[10px] font-bold text-slate-500"><span class="inline-block w-2 h-2 rounded-full bg-[#EF4444] mr-1"></span> Human Hair</div>
+            </div>
+        </div>
+
+        <!-- Live Activity -->
+        <div class="col-span-12 lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+            <h3 class="text-xs font-black uppercase text-slate-800 mb-4">Live Feed</h3>
+            <div class="space-y-4">
+                {% for item in recent_activity %}
+                <div class="flex items-center justify-between group">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center shrink-0 group-hover:bg-indigo-50 transition-colors">
+                            {% if item.item_type == 'service' %}✂️{% elif item.item_type == 'human_hair' %}👩‍🦱{% else %}🧴{% endif %}
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[11px] font-bold text-slate-800 truncate">{{ item.name }}</p>
+                            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">{{ item.sale.created_at|timesince }} ago</p>
+                        </div>
+                    </div>
+                    <p class="text-[11px] font-black text-slate-900">+{{ item.item_total|floatformat:0 }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Quick Actions & Alert (Stacked) -->
+        <div class="col-span-12 lg:col-span-3 space-y-4">
+            <div class="bg-[#0B0C10] p-5 rounded-2xl shadow-lg relative overflow-hidden group">
+                <h3 class="text-sm font-bold text-white mb-4 relative z-10">Shortcuts</h3>
+                <div class="grid grid-cols-1 gap-2 relative z-10">
+                    <a href="{% url 'pos_dashboard' %}" class="bg-indigo-600 text-white text-[10px] font-black uppercase py-2.5 rounded-xl text-center hover:bg-indigo-500 transition-colors">New Sale</a>
+                    <a href="{% url 'clients_list' %}" class="bg-white/10 text-white text-[10px] font-black uppercase py-2.5 rounded-xl text-center hover:bg-white/20 transition-colors">Clients</a>
+                </div>
+                <div class="absolute -right-4 -bottom-4 text-white/5 text-7xl font-black italic pointer-events-none">POS</div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                <h3 class="text-[10px] font-black uppercase text-slate-400 mb-3">Inventory Alerts</h3>
+                <div class="space-y-2">
+                    {% for alert in inventory_alerts %}
+                    <div class="flex justify-between items-center bg-slate-50 p-2 rounded-lg">
+                        <span class="text-[10px] font-bold text-slate-600 truncate">{{ alert.name }}</span>
+                        <span class="text-[9px] font-black text-rose-600">{{ alert.bundles_in_stock }} left</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('revenueMixChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Services', 'Hair', 'Products', 'Drinks'],
+            datasets: [{
+                data: {{ chart_data|safe }},
+                backgroundColor: ['#5C59E8', '#EF4444', '#10B981', '#F59E0B'],
+                borderWidth: 0,
+                hoverOffset: 15
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            cutout: '82%',
+            plugins: { legend: { display: false } }
+        }
+    });
+</script>
+{% endblock %}

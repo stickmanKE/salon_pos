@@ -1,0 +1,171 @@
+{% extends 'layout.html' %}
+{% block title %}Reports{% endblock %}
+{% block page_title %}Reports & Analytics{% endblock %}
+
+{% block content %}
+
+<!-- Period summary cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Today's Revenue</p>
+        <p class="text-3xl font-bold text-green-600">KSh {{ today_revenue|floatformat:0 }}</p>
+    </div>
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">This Week</p>
+        <p class="text-3xl font-bold text-blue-600">KSh {{ week_revenue|floatformat:0 }}</p>
+    </div>
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">This Month</p>
+        <p class="text-3xl font-bold text-purple-600">KSh {{ month_revenue|floatformat:0 }}</p>
+        <p class="text-sm text-gray-400 mt-1">{{ month_sales }} sales</p>
+    </div>
+</div>
+
+<!-- Revenue Chart (last 30 days) -->
+<div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-6">
+    <h3 class="font-semibold text-gray-800 mb-4">Daily Revenue — Last 30 Days</h3>
+    <canvas id="revenueChart" height="80"></canvas>
+</div>
+
+<!-- Bottom grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Top Services -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-5 border-b">
+            <h3 class="font-semibold text-gray-800">Top Services This Month</h3>
+        </div>
+        <div class="divide-y">
+            {% for svc in top_services %}
+            <div class="px-5 py-3 flex items-center justify-between">
+                <div>
+                    <div class="text-sm font-medium text-gray-900">{{ svc.name }}</div>
+                    <div class="text-xs text-gray-400">{{ svc.count }} times</div>
+                </div>
+                <div class="text-sm font-bold text-green-600">KSh {{ svc.revenue|floatformat:0 }}</div>
+            </div>
+            {% empty %}
+            <div class="p-5 text-sm text-gray-400">No data yet</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Worker Performance -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-5 border-b">
+            <h3 class="font-semibold text-gray-800">Worker Performance This Month</h3>
+        </div>
+        <div class="divide-y">
+            {% for w in worker_stats %}
+            <div class="px-5 py-3 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 font-bold text-xs">
+                        {{ w.worker__full_name|slice:":1"|upper }}
+                    </div>
+                    <div>
+                        <div class="text-sm font-medium text-gray-900">{{ w.worker__full_name }}</div>
+                        <div class="text-xs text-gray-400">{{ w.jobs }} jobs · {{ w.worker__role }}</div>
+                    </div>
+                </div>
+                <div class="text-sm font-bold text-green-600">KSh {{ w.revenue|floatformat:0 }}</div>
+            </div>
+            {% empty %}
+            <div class="p-5 text-sm text-gray-400">No worker data. Assign workers in POS.</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Right column: Beverages + Payment -->
+    <div class="space-y-4">
+
+        <!-- Top Beverages -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="p-5 border-b">
+                <h3 class="font-semibold text-gray-800">Top Beverages This Month</h3>
+            </div>
+            <div class="divide-y">
+                {% for bev in top_beverages %}
+                <div class="px-5 py-2.5 flex items-center justify-between">
+                    <div>
+                        <div class="text-sm font-medium text-gray-900">{{ bev.name }}</div>
+                        <div class="text-xs text-gray-400">{{ bev.count }} sold</div>
+                    </div>
+                    <div class="text-sm font-bold text-orange-600">KSh {{ bev.revenue|floatformat:0 }}</div>
+                </div>
+                {% empty %}
+                <div class="p-5 text-sm text-gray-400">No beverage sales yet</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Payment Methods -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="p-5 border-b">
+                <h3 class="font-semibold text-gray-800">Payment Methods This Month</h3>
+            </div>
+            <div class="divide-y">
+                {% for p in payment_breakdown %}
+                <div class="px-5 py-2.5 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full inline-block
+                            {% if p.payment_method == 'mpesa' %}bg-blue-500
+                            {% elif p.payment_method == 'card' %}bg-purple-500
+                            {% else %}bg-green-500{% endif %}"></span>
+                        <span class="text-sm font-medium capitalize">{{ p.payment_method|default:"Cash" }}</span>
+                        <span class="text-xs text-gray-400">{{ p.count }} sales</span>
+                    </div>
+                    <div class="text-sm font-bold text-gray-800">KSh {{ p.total|floatformat:0 }}</div>
+                </div>
+                {% empty %}
+                <div class="p-5 text-sm text-gray-400">No data</div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+const labels = {{ daily_labels|safe }};
+const values = {{ daily_values|safe }};
+
+const ctx = document.getElementById('revenueChart').getContext('2d');
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: labels,
+        datasets: [{
+            label: 'Revenue (KSh)',
+            data: values,
+            backgroundColor: 'rgba(16, 185, 129, 0.2)',
+            borderColor: 'rgb(16, 185, 129)',
+            borderWidth: 2,
+            borderRadius: 6,
+            tension: 0.4,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: ctx => 'KSh ' + ctx.parsed.y.toLocaleString()
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: val => 'KSh ' + val.toLocaleString()
+                },
+                grid: { color: 'rgba(0,0,0,0.04)' }
+            },
+            x: { grid: { display: false } }
+        }
+    }
+});
+</script>
+
+{% endblock %}

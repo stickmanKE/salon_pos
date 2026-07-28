@@ -1,0 +1,37 @@
+{% load humanize %}
+<div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 group relative overflow-hidden">
+    <div class="flex items-center gap-3">
+        <!-- Smaller, more focused icon -->
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0
+            {% if color == 'indigo' %}bg-indigo-50 text-indigo-600{% endif %}
+            {% if color == 'green' %}bg-emerald-50 text-emerald-600{% endif %}
+            {% if color == 'orange' %}bg-orange-50 text-orange-600{% endif %}
+            {% if color == 'blue' %}bg-blue-50 text-blue-600{% endif %}
+            {% if color == 'pink' %}bg-pink-50 text-pink-600{% endif %}
+            {% if color == 'purple' %}bg-purple-50 text-purple-600{% endif %}
+            {% if color == 'red' %}bg-red-50 text-red-600{% endif %}
+            {% if color == 'rose' %}bg-rose-50 text-rose-600{% endif %}
+            {% if color == 'cyan' %}bg-cyan-50 text-cyan-600{% endif %}">
+            {{ icon }}
+        </div>
+        
+        <div class="min-w-0 flex-1">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">{{ title }}</p>
+            <div class="flex items-baseline gap-1">
+                <h3 class="text-lg font-black text-slate-800 truncate">
+                    {% if not unit or unit == "KSh" %}<span class="text-xs font-bold text-slate-400">KSh</span>{% endif %}
+                    {{ val|intcomma|default:"0" }}
+                </h3>
+                {% if unit and unit != "KSh" %}
+                    <span class="text-[10px] font-bold text-slate-400">{{ unit }}</span>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if trend %}
+        <div class="absolute top-2 right-2 flex items-center text-[9px] font-black text-emerald-500 bg-emerald-50 px-1.5 py-0.5 rounded-md">
+            ↑{{ trend }}%
+        </div>
+        {% endif %}
+    </div>
+</div>

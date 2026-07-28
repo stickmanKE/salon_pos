@@ -1,0 +1,260 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<!-- Main POS Container: Fixed Height to prevent page scroll -->
+<div class="flex flex-col h-[calc(100vh-100px)] -m-4 lg:-m-6">
+    
+    <div class="flex flex-1 overflow-hidden">
+        
+        <!-- LEFT PANEL: Items Selection (65%) -->
+        <div class="flex-1 flex flex-col min-w-0 border-r border-slate-200 bg-white">
+            
+            <!-- Search & Tabs Header -->
+            <div class="p-4 space-y-4 border-b border-slate-100 shrink-0">
+                <!-- Search Bar -->
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-sm">🔍</span>
+                    <input type="text" id="pos-search" onkeyup="filterItems()" 
+                           placeholder="Quick search everything..." 
+                           class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+
+                <!-- Category Tabs -->
+                <div class="flex gap-2 overflow-x-auto pb-1 custom-scrollbar">
+                    <button onclick="switchTab('services')" class="tab-btn active-tab px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all" id="tab-services">✂️ Services</button>
+                    <button onclick="switchTab('hair')" class="tab-btn inactive-tab px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all" id="tab-hair">💇 Human Hair</button>
+                    <button onclick="switchTab('products')" class="tab-btn inactive-tab px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all" id="tab-products">🧴 Products</button>
+                    <button onclick="switchTab('beverages')" class="tab-btn inactive-tab px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all" id="tab-beverages">☕ Beverages</button>
+                </div>
+            </div>
+
+            <!-- Scrollable Items Grid -->
+            <div class="flex-1 overflow-y-auto p-4 custom-scrollbar bg-slate-50/30">
+                
+                <!-- Services Tab -->
+                <div id="content-services" class="pos-tab-content grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+                    {% for s in services %}
+                    <button onclick="addToCart('{{ s.id }}', '{{ s.name|escapejs }}', {{ s.price }}, 'service')"
+                            data-name="{{ s.name|lower }}"
+                            class="item-btn p-3 bg-white border border-slate-200 rounded-xl text-left hover:border-indigo-500 hover:shadow-md transition-all active:scale-95">
+                        <div class="font-bold text-xs text-slate-800 h-8 line-clamp-2">{{ s.name }}</div>
+                        <div class="mt-2 text-sm font-black text-indigo-600">KSh {{ s.price|floatformat:0 }}</div>
+                    </button>
+                    {% endfor %}
+                </div>
+
+                <!-- Hair Tab -->
+                <div id="content-hair" class="pos-tab-content hidden grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+                    {% for h in human_hair %}
+                    <button onclick="addToCart('{{ h.id }}', '{{ h.name|escapejs }}', {{ h.selling_price }}, 'human_hair')"
+                            data-name="{{ h.name|lower }}"
+                            class="item-btn p-3 bg-white border border-slate-200 rounded-xl text-left hover:border-pink-500 transition-all">
+                        <div class="font-bold text-xs text-slate-800 truncate">{{ h.name }}</div>
+                        <div class="text-[9px] text-slate-400 font-bold uppercase mt-1">{{ h.texture.name }} | {{ h.length_inch }}"</div>
+                        <div class="flex justify-between items-center mt-2">
+                            <span class="text-xs font-black text-pink-600">KSh {{ h.selling_price|floatformat:0 }}</span>
+                            <span class="text-[9px] bg-pink-50 text-pink-700 px-1.5 py-0.5 rounded font-bold">{{ h.bundles_in_stock }}</span>
+                        </div>
+                    </button>
+                    {% endfor %}
+                </div>
+
+                <!-- Products Tab -->
+                <div id="content-products" class="pos-tab-content hidden grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+                    {% for p in products %}
+                    <div class="flex flex-col gap-1 item-btn" data-name="{{ p.name|lower }}">
+                        <button onclick="addToCart('{{ p.id }}', '{{ p.name|escapejs }}', {{ p.selling_price }}, 'product_sale')"
+                                class="flex-1 p-3 bg-white border border-slate-200 rounded-xl text-left hover:border-emerald-500 transition-all">
+                            <div class="font-bold text-xs text-slate-800 truncate">{{ p.name }}</div>
+                            <div class="mt-2 text-xs font-black text-emerald-600">KSh {{ p.selling_price|floatformat:0 }}</div>
+                        </button>
+                        <button onclick="addToCart('{{ p.id }}', '{{ p.name|escapejs }}', 0, 'product_use')"
+                                class="py-1 bg-amber-50 text-amber-700 text-[8px] font-black uppercase rounded-lg border border-amber-100">Internal Use</button>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Beverages Tab -->
+                <div id="content-beverages" class="pos-tab-content hidden grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+                    {% for b in beverages %}
+                    <button onclick="addToCart('{{ b.id }}', '{{ b.name|escapejs }}', {{ b.selling_price }}, 'beverage')"
+                            data-name="{{ b.name|lower }}"
+                            class="item-btn p-3 bg-white border border-slate-200 rounded-xl text-left hover:border-blue-500 transition-all">
+                        <div class="font-bold text-xs text-slate-800 truncate">{{ b.name }}</div>
+                        <div class="text-[9px] text-slate-400 font-bold mt-1">{{ b.volume_ml }}ml</div>
+                        <div class="mt-2 text-xs font-black text-blue-600">KSh {{ b.selling_price }}</div>
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL: Cart & Checkout (35%) -->
+        <div class="w-80 xl:w-96 flex flex-col bg-white shadow-2xl z-10">
+            <!-- Client & Stylist Selectors -->
+            <div class="p-4 bg-slate-50 border-b border-slate-200 space-y-3 shrink-0">
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Client</label>
+                        <select id="client" class="w-full mt-1 p-2 bg-white border border-slate-200 rounded-lg text-[11px] font-bold outline-none" onchange="updateClientInput()">
+                            <option value="">Walk-in Customer</option>
+                            {% for c in clients %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Stylist</label>
+                        <select id="global_worker" class="w-full mt-1 p-2 bg-white border border-slate-200 rounded-lg text-[11px] font-bold outline-none">
+                            <option value="">-- Assign --</option>
+                            {% for s in staff %}<option value="{{ s.id }}">{{ s.full_name }}</option>{% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scrollable Cart Area -->
+            <div class="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                <ul id="cart-items" class="space-y-2">
+                    <!-- JS Items here -->
+                </ul>
+            </div>
+
+            <!-- Fixed Totals & Pay Button -->
+            <div class="mt-auto p-5 border-t border-slate-200 bg-white shrink-0">
+                <div class="space-y-2 mb-4">
+                    <div class="flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        <span>Subtotal</span>
+                        <span id="subtotal" class="text-slate-800">KSh 0</span>
+                    </div>
+                    <div class="flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        <span>Discount</span>
+                        <input type="number" id="discount" value="0" class="w-20 bg-slate-50 border border-slate-200 p-1 text-right text-indigo-600 rounded-md font-bold">
+                    </div>
+                    <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+                        <span class="text-xs font-black text-slate-900 uppercase">Total to Pay</span>
+                        <span id="total" class="text-xl font-black text-indigo-600">KSh 0</span>
+                    </div>
+                </div>
+
+                <!-- Payment Options -->
+                <div class="grid grid-cols-3 gap-1 mb-4">
+                    <button type="button" onclick="setPayment('cash')" class="pay-btn py-2 bg-indigo-600 text-white text-[9px] font-black uppercase rounded-lg transition-all" id="btn-cash">Cash</button>
+                    <button type="button" onclick="setPayment('mpesa')" class="pay-btn py-2 bg-slate-100 text-slate-400 text-[9px] font-black uppercase rounded-lg transition-all" id="btn-mpesa">M-Pesa</button>
+                    <button type="button" onclick="setPayment('card')" class="pay-btn py-2 bg-slate-100 text-slate-400 text-[9px] font-black uppercase rounded-lg transition-all" id="btn-card">Card</button>
+                </div>
+
+                <form method="POST" action="{% url 'create_sale' %}" onsubmit="prepareSubmit()">
+                    {% csrf_token %}
+                    <input type="hidden" name="client_id" id="client_input">
+                    <input type="hidden" name="cart_data" id="cart_data">
+                    <input type="hidden" name="payment_method" id="payment_method_input" value="cash">
+                    <input type="hidden" name="discount" id="discount_input">
+
+                    <button type="submit" class="w-full py-4 bg-slate-900 text-white text-xs font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl hover:bg-black active:scale-95 transition-all">
+                        Finalize Sale
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .tab-btn { border: 1px solid #e2e8f0; }
+    .active-tab { background: #4f46e5; color: white; border-color: #4f46e5; }
+    .inactive-tab { background: white; color: #64748b; }
+    .inactive-tab:hover { background: #f8fafc; color: #1e293b; }
+</style>
+
+<script>
+let cart = [];
+
+function switchTab(tab) {
+    document.querySelectorAll('.pos-tab-content').forEach(c => c.classList.add('hidden'));
+    document.getElementById('content-' + tab).classList.remove('hidden');
+    
+    document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('active-tab');
+        b.classList.add('inactive-tab');
+    });
+    document.getElementById('tab-' + tab).classList.add('active-tab');
+    document.getElementById('tab-' + tab).classList.remove('inactive-tab');
+}
+
+function addToCart(id, name, price, type) {
+    let qty = parseFloat(document.getElementById('qty') ? document.getElementById('qty').value : 1) || 1;
+    let worker_id = document.getElementById('global_worker').value;
+    
+    let existing = cart.find(i => i.id === id && i.type === type);
+    if (existing) {
+        existing.quantity += qty;
+    } else {
+        cart.push({ id, name, price, type, quantity: qty, worker_id });
+    }
+    if (document.getElementById('qty')) document.getElementById('qty').value = 1;
+    renderCart();
+}
+
+function renderCart() {
+    const list = document.getElementById('cart-items');
+    list.innerHTML = '';
+    let subtotal = 0;
+
+    if (cart.length === 0) {
+        list.innerHTML = '<li class="text-slate-400 italic py-10 text-center text-[11px]">No items in cart</li>';
+    }
+
+    cart.forEach((item, index) => {
+        subtotal += (item.price * item.quantity);
+        const li = document.createElement('li');
+        li.className = "flex justify-between items-center p-3 bg-slate-50 border border-slate-100 rounded-xl group";
+        
+        li.innerHTML = `
+            <div class="min-w-0 flex-1">
+                <div class="text-[11px] font-black text-slate-800 truncate">${item.name}</div>
+                <div class="text-[10px] font-bold text-slate-400 mt-0.5">${item.quantity} × KSh ${item.price.toLocaleString()}</div>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="text-xs font-black text-slate-900">KSh ${(item.price * item.quantity).toLocaleString()}</span>
+                <button onclick="cart.splice(${index},1);renderCart()" class="text-slate-300 hover:text-red-500 text-lg transition-colors">&times;</button>
+            </div>
+        `;
+        list.appendChild(li);
+    });
+
+    const disc = parseFloat(document.getElementById('discount').value) || 0;
+    document.getElementById('subtotal').innerText = "KSh " + subtotal.toLocaleString();
+    document.getElementById('total').innerText = "KSh " + (subtotal - disc).toLocaleString();
+}
+
+document.getElementById('discount').addEventListener('input', renderCart);
+
+function setPayment(m) {
+    document.getElementById('payment_method_input').value = m;
+    document.querySelectorAll('.pay-btn').forEach(b => {
+        b.className = "pay-btn py-2 bg-slate-100 text-slate-400 text-[9px] font-black uppercase rounded-lg";
+    });
+    document.getElementById('btn-' + m).className = "pay-btn py-2 bg-indigo-600 text-white text-[9px] font-black uppercase rounded-lg";
+}
+
+function filterItems() {
+    let q = document.getElementById('pos-search').value.toLowerCase();
+    document.querySelectorAll('.item-btn').forEach(btn => {
+        let name = btn.getAttribute('data-name') || "";
+        btn.style.display = name.includes(q) ? 'block' : 'none';
+    });
+}
+
+function updateClientInput() {
+    document.getElementById('client_input').value = document.getElementById('client').value;
+}
+
+function prepareSubmit() {
+    document.getElementById('cart_data').value = JSON.stringify(cart);
+    document.getElementById('client_input').value = document.getElementById('client').value;
+    document.getElementById('discount_input').value = document.getElementById('discount').value;
+}
+
+renderCart();
+</script>
+
+{% endblock %}

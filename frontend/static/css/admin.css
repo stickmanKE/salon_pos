@@ -1,0 +1,24 @@
+/* Make admin more modern */
+
+.content-wrapper {
+    background-color: #f9fafb;
+}
+
+.card {
+    border-radius: 12px !important;
+}
+
+.navbar {
+    background: linear-gradient(to right, #54c9ff, #48cbec);
+}
+/* buttons */
+.btn-primary {
+    background-color: #60a0f5 !important;
+    border-radius: 8px !important;
+}
+
+/* tables */
+.table {
+    border-radius: 10px;
+    overflow: hidden;
+}

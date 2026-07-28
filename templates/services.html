@@ -1,0 +1,80 @@
+{% extends 'layout.html' %}
+
+{% block title %}Service Menu{% endblock %}
+
+{% block content %}
+
+<!-- HEADER & CATEGORY FILTER -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+    <h2 class="text-2xl font-bold text-gray-800">Service Menu</h2>
+    
+    <div class="flex gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
+        <button class="px-4 py-2 bg-black text-white rounded-xl text-sm font-medium whitespace-nowrap shadow-sm">
+            All Services
+        </button>
+
+        {% for category in categories %}
+        <button class="px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-xl text-sm font-medium whitespace-nowrap hover:bg-gray-50 transition shadow-sm">
+            {{ category.name }}
+        </button>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- SERVICES GRID -->
+<!-- Fixed: Changed to responsive grid (1 col mobile, 3 col desktop) -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+    {% for service in services %}
+    <div class="group bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:border-orange-400 hover:shadow-md transition-all cursor-pointer">
+        
+        <div class="flex justify-between items-start mb-2">
+            <h3 class="font-bold text-gray-800 group-hover:text-orange-600 transition-colors">
+                {{ service.name }}
+            </h3>
+            <!-- Category Tag -->
+            <span class="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded-lg uppercase font-bold tracking-wider">
+                {{ service.category.name|default:"General" }}
+            </span>
+        </div>
+
+        <div class="flex items-center gap-2 text-sm text-gray-400 mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>{% if service.duration %}{{ service.duration }} mins{% else %}TBD{% endif %}</span>
+        </div>
+
+        <div class="flex justify-between items-end">
+            <div>
+                <p class="text-xs text-gray-400 uppercase font-bold tracking-tighter">Price</p>
+                <p class="text-xl font-black text-gray-900">
+                    <span class="text-sm font-normal text-gray-500">KSh</span> {{ service.price|floatformat:0 }}
+                </p>
+            </div>
+            
+            <!-- Quick Edit/View Button -->
+            <div class="p-2 bg-gray-50 rounded-xl text-gray-400 group-hover:bg-orange-50 group-hover:text-orange-500 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </div>
+        </div>
+
+    </div>
+    {% empty %}
+    <!-- Empty State -->
+    <div class="col-span-full py-20 text-center bg-white rounded-2xl border border-dashed border-gray-300">
+        <div class="text-gray-300 mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758L5 19m0-14l4.121 4.121" />
+            </svg>
+        </div>
+        <h3 class="text-lg font-medium text-gray-900">No services found</h3>
+        <p class="text-gray-500">Try adding a new service in the admin panel.</p>
+    </div>
+    {% endfor %}
+
+</div>
+
+{% endblock %}
